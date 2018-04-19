@@ -7,6 +7,9 @@ export default class Link extends React.Component {
   //   d3.event.stopPropagation();
   // }
 
+  componentWillReceiveProps(nextProps) {
+    this._link.__data__ = nextProps.link; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
+  }
 
   componentDidMount() {
     const { link } = this.props;

@@ -5,15 +5,14 @@ const host = '127.0.0.1';
 const port = '9000';
 
 module.exports = {
-  // entry: ['./src/index.js'],
-  entry: ['react-hot-loader/patch', './src/index.js'],
+  entry: [`webpack-dev-server/client?http://${host}:${port}`, 'webpack/hot/dev-server', './src/index.js'],
   mode: 'development',
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     compress: true,
     port,
-    inline: true,
-    hot: true
+    // inline: true,
+    // hot: true
   },
   devtool:'eval-source-map',
   module: {
