@@ -2,6 +2,8 @@ import * as d3 from 'd3';
 import { WIDTH, HEIGHT, NODE_ID_KEY, noop } from './default';
 
 export default class Simulation {
+  sourceKey = 'source';
+  targetKey = 'target';
   width = WIDTH;
   height = HEIGHT;
   nodeIdKey = NODE_ID_KEY;
@@ -17,14 +19,25 @@ export default class Simulation {
     this.setSimulationLayout(options);
   }
 
-  setSimulationLayout({velocityDecay, nodeIdKey, linkDistance, collideRadius, collideStrength, chargeStrength, XYCenter, width, height}) {
+  setSimulationLayout({velocityDecay, nodeIdKey, linkDistance, collideRadius, collideStrength, chargeStrength, alphaDecay, alphaMin, XYCenter, width, height, sourceKey, targetKey}) {
     this.width = width;
     this.height = height;
     this.nodeIdKey = nodeIdKey;
+    if (sourceKey) {
+      this.sourceKey = sourceKey;
+    }
+    if (targetKey) {
+      this.targetKey = targetKey;
+    }
     if (velocityDecay) {
       this.simulation.velocityDecay(velocityDecay)
     }
-
+    if (alphaMin) {
+      this.simulation.alphaMin(alphaMin);
+    }
+    if (alphaDecay) {
+      this.simulation.alphaDecay(alphaDecay);
+    }
     const forceLink = d3.forceLink();
     if (nodeIdKey) {
       forceLink.id(d => d[nodeIdKey]);
@@ -33,8 +46,9 @@ export default class Simulation {
       forceLink.distance(linkDistance);
     }
     this.simulation.force('link', forceLink);
+    this.simulation.force('center', d3.forceCenter());
 
-    if (collideRadius || colideStrength) {
+    if (collideRadius || collideStrength) {
       const forceCollide = d3.forceCollide();
       if (collideRadius) {
         forceCollide.radius(typeof collideRadius === 'function' ? (d) => {
@@ -52,10 +66,12 @@ export default class Simulation {
     if (chargeStrength) {
       this.simulation.force("charge", d3.forceManyBody().strength(chargeStrength));
     }
-    console.log(XYCenter);
     if (XYCenter) {
       this.simulation.force('x', d3.forceX(XYCenter && XYCenter.x || undefined))
       this.simulation.force('y', d3.forceY(XYCenter && XYCenter.y || undefined))
+    } else {
+      this.simulation.force('x', null);
+      this.simulation.force('y', null);
     }
   }
 
@@ -64,7 +80,7 @@ export default class Simulation {
       event.tick && event.tick(this.simulation.alpha())
     })
     .on('end', () => {
-      event.end && event.end(this.simulation.alpha())
+      event.end && event.end(this.simulation.alpha());
     })
   }
 
@@ -88,26 +104,27 @@ export default class Simulation {
   }
 
   initLinks(links) {
-    const { nodeIdKey } = this;
-    const newLinks = []
+    const { nodeIdKey, sourceKey, targetKey } = this;
+    const newLinks = [];
     links.forEach(link => {
-      let sourceKey = link.source, targetKey = link.target;
-      if (typeof link.source === 'object') {
-        sourceKey = link.source[nodeIdKey];
+      let source = link[sourceKey], target = link[targetKey];
+      if (typeof source === 'object') {
+        source = source[nodeIdKey];
       }
-      if (typeof link.target === 'object') {
-        targetKey = link.target[nodeIdKey];
+      if (typeof target === 'object') {
+        target = target[nodeIdKey];
       }
-      newLinks.push({
-        source: this.nodesMap[sourceKey],
-        target: this.nodesMap[targetKey]
-      })
+      const sourcePush = this.nodesMap[source];
+      const targetPush = this.nodesMap[target];
+      if (sourcePush && targetPush) {
+        newLinks.push({source: sourcePush, target: targetPush})
+      }
     })
     this.links = newLinks;
   }
 
 
-  setNodesLinks(nodes, links, alpha = 0.5) {
+  setNodesLinks(nodes, links, alpha = 1) {
     this.initNodes(nodes);
     this.initLinks(links);
     this.simulation.nodes(this.nodes).force('link').links(this.links);
@@ -115,17 +132,18 @@ export default class Simulation {
     this.simulation.alpha(alpha > 1 ? 1 : alpha).restart();
   }
 
-  initDrag() {
+  initDrag(event = {}) {
     const drag = d3.drag()
       .on('start', (d) => {
         if (!d3.event.active) {
           this.simulation.alphaTarget(0.5).restart();
         }
-        console.log('drag');
+        event.start && event.start(d);
       })
       .on('drag', d => {
         d.fx = d.x = d3.event.x;
         d.fy = d.y = d3.event.y;
+        event.drag && event.drag(d);
       })
       .on('end', d => {
         if (!d3.event.active) {
@@ -133,6 +151,7 @@ export default class Simulation {
         }
         d.fx = null;
         d.fy = null;
+        event.end && event.end(d);
       });
     this.drag = drag;
   }

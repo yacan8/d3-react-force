@@ -9,15 +9,23 @@ export default class Node extends React.Component {
 
   componentDidMount() {
     const { node, parentComponment } = this.props;
-    const { nodeClick } = parentComponment.props;
     this._node.__data__ = node;
     d3.select(this._node)
     .on('click', d => {
       const event = d3.event;
       event.stopPropagation();
+      const { nodeClick } = parentComponment.props;
       if (nodeClick) {
-        nodeClick(node);
+        nodeClick(d, node, d3.event);
       }
+    })
+    .on('mouseover', node => {
+      const { nodeMouseover } = parentComponment.props;
+      nodeMouseover && nodeMouseover(d, node, d3.event);
+    })
+    .on('mouseout', node => {
+      const { nodeMouseout } = parentComponment.props;
+      nodeMouseout && nodeMouseover(d, node, d3.event);
     })
     .call(parentComponment.force.drag)
   }

@@ -1,13 +1,14 @@
 {
-  "name": "d3-react-force",
+  "name": "@td/d3-react-force",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "export NODE_ENV=development && webpack-dev-server",
     "clean": "rimraf lib",
     "build": "npm run clean && echo Using Babel && babel --version && babel src/D3ReactForce --out-dir lib -s",
-    "pub": "npm run build && npm publish"
+    "pub": "npm run build && npm publish",
+    "release": "export NODE_ENV=production && webpack"
   },
   "babel": {
     "presets": [
@@ -51,10 +52,9 @@
     "webpack-dev-server": "^3.1.3",
     "webpack-hot-middleware": "^2.21.2"
   },
-  "dependencies": {
-    "d3": "^5.1.0",
-    "lodash": "^4.17.5",
-    "react": "^16.3.2",
-    "react-dom": "^16.3.2"
+  "peerDependencies": {
+    "d3": ">=5.0.0",
+    "react": ">=16.0.0",
+    "react-dom": ">=16.0.0"
   }
 }

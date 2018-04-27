@@ -1,12 +1,13 @@
 const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const isDebug = process.env.NODE_ENV === 'development';
 const host = '127.0.0.1';
 const port = '9000';
 
-module.exports = {
-  entry: [`webpack-dev-server/client?http://${host}:${port}`, 'webpack/hot/dev-server', './src/index.js'],
-  mode: 'development',
+const config = {
+  entry: isDebug ? [`webpack-dev-server/client?http://${host}:${port}`, 'webpack/hot/dev-server', './src/index.js'] : ['./src/release'],
+  mode: isDebug ? 'development' : 'production',
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     compress: true,
@@ -45,9 +46,17 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.html',
       hash: false,
-      title: 'react-mobx-todo',
+      title: 'd3-react-force',
       filename: 'index.html',
       inject: 'body'
     })
   ]
 }
+
+if (!isDebug) {
+  config.output = {
+    path: '/Users/can.yang/tdProject/react-ssr-demo/src/main/resources/static/src'
+  }
+}
+
+module.exports = config;

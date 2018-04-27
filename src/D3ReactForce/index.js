@@ -74,7 +74,7 @@ class D3ReactForce extends React.Component {
         zoom: (transform) => {
           d3.select(this.outg).attr('transform', `translate(${transform.translate})scale(${transform.scale})`)
         }
-      }, [0.2, 4]);
+      });
       d3.select(this.svg).call(this.force.zoom)
     }
     this.force.tick({
@@ -123,13 +123,15 @@ class D3ReactForce extends React.Component {
     const nodesY = nodes.map(node => node.y);
     const minX = Math.min(...nodesX), minY = Math.min(...nodesY), maxX = Math.max(...nodesX), maxY = Math.max(...nodesY);
     const graphWidth = maxX - minX, graphHeight = maxY - minY;
-    const scale = width > graphWidth ? 1 : graphWidth / width;
+    const scale = width > graphWidth ? 1 : width / graphWidth;
     const translateX = scale * minX, translateY = scale * minY;
     return {
-      width: graphWidth,
-      height: graphHeight,
+      width: graphWidth * scale,
+      height: graphHeight * scale,
       translate: [-translateX, -translateY],
-      scale: scale
+      scale: scale,
+      graphWidth,
+      graphHeight
     }
   }
 
@@ -139,7 +141,7 @@ class D3ReactForce extends React.Component {
     let staticLayoutTransform = {};
     if (staticLayout) {
       const getStaticLayoutTransform = this.getStaticLayoutTransform();
-      width = getStaticLayoutTransform.width;
+      // width = getStaticLayoutTransform.width;
       height = getStaticLayoutTransform.height;
       translate = getStaticLayoutTransform.translate;
       scale = getStaticLayoutTransform.scale;
@@ -168,6 +170,7 @@ class D3ReactForce extends React.Component {
             }
           </g>
         </g>
+        {this.props.children}
       </svg>
     </div>
   }
