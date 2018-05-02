@@ -5,10 +5,10 @@ export default class Link extends React.Component {
 
   getLink = () => {
     const { addRef, link, parentComponment } = this.props;
-    const { getLink } = parentComponment.props;
+    const { getLink = {} } = parentComponment.props;
     if (typeof getLink === 'function') {
       return getLink(link, addRef);
-    } else if (typeof getLink === 'object'){
+    } else {
       const stroke = typeof getLink.stroke === 'function' ? getLink.stroke(link) : getLink.stroke;
       const strokeWidth = typeof getLink.strokeWidth === 'function' ? getLink.strokeWidth(link) : getLink.strokeWidth;
       return <line

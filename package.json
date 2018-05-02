@@ -1,6 +1,6 @@
 {
-  "name": "@td/d3-react-force",
-  "version": "1.0.0",
+  "name": "d3-react-force",
+  "version": "1.0.1",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
