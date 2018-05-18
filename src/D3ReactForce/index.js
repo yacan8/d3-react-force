@@ -118,7 +118,7 @@ class D3ReactForce extends React.Component {
   }
 
   getStaticLayoutTransform = () => {
-    const { nodes, width } = this.props;
+    const { nodes, width, padding } = this.props;
     const nodesX = nodes.map(node => node.x);
     const nodesY = nodes.map(node => node.y);
     const minX = Math.min(...nodesX), minY = Math.min(...nodesY), maxX = Math.max(...nodesX), maxY = Math.max(...nodesY);
@@ -126,9 +126,9 @@ class D3ReactForce extends React.Component {
     const scale = width > graphWidth ? 1 : width / graphWidth;
     const translateX = scale * minX, translateY = scale * minY;
     return {
-      width: graphWidth * scale,
-      height: graphHeight * scale,
-      translate: [-translateX, -translateY],
+      width: graphWidth * scale + 2 * padding,
+      height: graphHeight * scale + 2 * padding,
+      translate: [-translateX + padding, -translateY + padding],
       scale: scale,
       graphWidth,
       graphHeight
@@ -141,13 +141,13 @@ class D3ReactForce extends React.Component {
     let staticLayoutTransform = {};
     if (staticLayout) {
       const getStaticLayoutTransform = this.getStaticLayoutTransform();
-      // width = getStaticLayoutTransform.width;
+      width = getStaticLayoutTransform.width;
       height = getStaticLayoutTransform.height;
       translate = getStaticLayoutTransform.translate;
       scale = getStaticLayoutTransform.scale;
     }
     return <div>
-      <svg ref={svg => this.svg = svg} width={width} height={height} style={{padding: 50}}>
+      <svg ref={svg => this.svg = svg} width={width} height={height}>
         <g ref={outg => this.outg = outg} transform={`translate(${translate})scale(${scale})`}>
           <g>
             {
