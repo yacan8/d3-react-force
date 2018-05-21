@@ -9,16 +9,19 @@ export default class Link extends React.Component {
     if (typeof getLink === 'function') {
       return getLink(link, addRef);
     } else {
-      const stroke = typeof getLink.stroke === 'function' ? getLink.stroke(link) : getLink.stroke;
-      const strokeWidth = typeof getLink.strokeWidth === 'function' ? getLink.strokeWidth(link) : getLink.strokeWidth;
+      const linkAttrs = {};
+      Object.keys(getLink).forEach(attr => {
+        linkAttrs[attr] = typeof getLink[attr] === 'function' ? getLink[attr](link) : getLink[attr];
+      });
       return <line
         ref={child => {
           this._link = child;
           addRef(child)
         }}
         {...getLink}
-        stroke={stroke || '#333'}
-        strokeWidth={strokeWidth || 1}
+        stroke="#333"
+        strokeWidth="1"
+        {...linkAttrs}
         x1={link.source.x}
         y1={link.source.y}
         x2={link.target.x}

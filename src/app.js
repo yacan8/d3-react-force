@@ -176,8 +176,10 @@ export default class App extends React.Component {
             console.log('结束');
           }}
           getLink={{
-            stroke: '#859731',
-            strokeWidth: 1
+            stroke: () => '#859731',
+            strokeWidth: () => 1,
+            strokeOpacity: () => Math.random(),
+            strokeDasharray: '1 2'
           }}
           getNode={(node) => {
             return <g transform="translate(-15, -15)">
