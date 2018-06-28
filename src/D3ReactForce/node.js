@@ -7,47 +7,72 @@ export default class Node extends React.Component {
     this._node.__data__ = nextProps.node; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
   }
 
-  componentDidMount() {
-    const { node, parentComponment } = this.props;
+
+  initEvent = props => {
+    const { node, parentComponment } = props;
     this._node.__data__ = node;
-    d3.select(this._node)
+    const nodeDom = d3.select(this._node)
     .on('click', d => {
       const event = d3.event;
       event.stopPropagation();
-      const { nodeClick } = parentComponment.props;
-      if (nodeClick) {
-        nodeClick(d, node, d3.event);
+      const { nodeClick, nodeDbClick } = parentComponment.props;
+      if (d._clickid) {
+        clearTimeout(d._clickid);
+        d._clickid = null;
+        if (nodeClick) {
+          nodeClick(d, event);
+        }
+        if (nodeDbClick) {
+          nodeDbClick(d, event);
+        }
+      } else {
+        d._clickid = setTimeout(() => {
+          if (nodeClick) {
+            nodeClick(d, event);
+          }
+          d._clickid = null;
+        }, 300);
       }
     })
     .on('mouseover', node => {
       const { nodeMouseover } = parentComponment.props;
-      nodeMouseover && nodeMouseover(d, node, d3.event);
+      nodeMouseover && nodeMouseover(node, d3.event);
     })
     .on('mouseout', node => {
       const { nodeMouseout } = parentComponment.props;
-      nodeMouseout && nodeMouseover(d, node, d3.event);
+      nodeMouseout && nodeMouseout(node, d3.event);
     })
     .call(parentComponment.force.drag)
+    .on('mouseover.force', null)
+    .on('mouseout.force', null);
+  }
+
+  componentDidMount() {
+    this.initEvent(this.props);
   }
 
   getNode = () => {
     const { node, parentComponment } = this.props;
     const { getNode } = parentComponment.props;
     if (getNode) {
-      return getNode(node)
+      if (typeof getNode === 'function') {
+        return getNode(node)
+      }
+      return React.cloneElement(getNode, {node: node});
     }
-    return <circle cx="0" cy="0" r="10" strokeWidth="0" fill="#999" />
+    return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#fff" />
   }
 
   render() {
     const { node, addRef, parentComponment } = this.props;
-    const { nodeIdKey } = parentComponment;
+    const { nodeIdKey, width, height, nodeProps } = parentComponment.props;
     return (
       <g ref={child => {
           this._node = child;
           addRef(child);
         }}
-        transform={`translate(${node.x || 400},${node.y || 400})`}
+        {...nodeProps}
+        transform={`translate(${node.x || width / 2},${node.y || height / 2})`}
       >
         <g id={node[nodeIdKey]}>
           {this.getNode()}

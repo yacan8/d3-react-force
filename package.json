@@ -1,10 +1,10 @@
 {
-  "name": "d3-react-force",
-  "version": "1.0.4",
+  "name": "@td/d3-react-force",
+  "version": "1.0.6",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "start": "export NODE_ENV=development && webpack-dev-server",
+    "start": "export NODE_ENV=development && webpack-serve --config ./webpack.config.js --hot",
     "clean": "rimraf lib",
     "build": "npm run clean && echo Using Babel && babel --version && babel src/D3ReactForce --out-dir lib -s",
     "pub": "npm run build && npm publish",

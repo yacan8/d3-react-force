@@ -46,7 +46,7 @@ export default class Simulation {
       forceLink.distance(linkDistance);
     }
     this.simulation.force('link', forceLink);
-    this.simulation.force('center', d3.forceCenter());
+    // this.simulation.force('center', d3.forceCenter());
 
     if (collideRadius || collideStrength) {
       const forceCollide = d3.forceCollide();
@@ -117,19 +117,27 @@ export default class Simulation {
       const sourcePush = this.nodesMap[source];
       const targetPush = this.nodesMap[target];
       if (sourcePush && targetPush) {
-        newLinks.push({source: sourcePush, target: targetPush})
+        link.source = sourcePush;
+        link.target = targetPush;
+        newLinks.push(link);
       }
     })
     this.links = newLinks;
   }
 
 
-  setNodesLinks(nodes, links, alpha = 1) {
+  setNodesLinks(nodes, links, alpha) {
     this.initNodes(nodes);
     this.initLinks(links);
     this.simulation.nodes(this.nodes).force('link').links(this.links);
+    if (alpha) {
+      this.start(alpha);
+    }
+  }
+
+  start(alpha) {
     const _alpha = this.simulation.alpha() + alpha;
-    this.simulation.alpha(alpha > 1 ? 1 : alpha).restart();
+    this.simulation.alpha(_alpha > 1 ? 1 : alpha).restart();
   }
 
   initDrag(event = {}) {
@@ -162,15 +170,18 @@ export default class Simulation {
   }
 
   initZoom(event, scaleExtent) {
+    const isZoom = event.isZoom || noop;
     const zoom = d3.zoom()
       .on('start', (d) => {
         event.start && event.start(d);
       })
       .on('zoom', () => {
-        const transform = d3.event.transform;
-        const translate = [transform.x, transform.y], scale = transform.k;
-        this.setTransform(translate, scale);
-        event.zoom && event.zoom({translate, scale});
+        if (isZoom(d3.event) !== false) {
+          const transform = d3.event.transform;
+          const translate = [transform.x, transform.y], scale = transform.k;
+          this.setTransform(translate, scale);
+          event.zoom && event.zoom({translate, scale});
+        }
       })
       .on('end', (d) => {
         event.end && event.end(d);
