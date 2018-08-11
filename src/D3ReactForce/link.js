@@ -3,68 +3,99 @@ import * as d3 from 'd3';
 
 export default class Link extends React.Component {
 
+  componentWillReceiveProps(nextProps) {
+    this._link.__data__ = nextProps.link;
+  }
+
   componentDidMount() {
-    let { link, parentComponment } = this.props;
-    const self = this;
-    this._link.__data__ = link;
+    const _self = this;
+    let { link, parentComponment } = _self.props;
+    _self._link.__data__ = link;
     const { linkClick, linkMouseover, linkMouseout } = parentComponment.props;
     d3.select(this._hover_link).on('click', () => {
-      linkClick(link, d3.event, this)
+      linkClick(_self.props.link, d3.event, _self)
     }).on('mouseover', () => {
-      linkMouseover(link, d3.event, this)
+      linkMouseover(_self.props.link, d3.event, _self)
     }).on('mouseout', () => {
-      linkMouseout(link, d3.event, this)
+      linkMouseout(_self.props.link, d3.event, _self)
     })
   }
   
 
   getLink = () => {
     const { addRef, link, parentComponment, addHoverRef } = this.props;
-    const { getLink = {}, hoverLink = {} } = parentComponment.props;
-    if (typeof getLink === 'function') {
-      return getLink(link, addRef);
-    } else {
+    const { linkElement, hoverLink = {} } = parentComponment.props;
+    let linkDom;
+    if (typeof linkElement === 'function') {
+      linkDom = React.cloneElement(linkElement(link), {
+        ref: child => {
+          this._link = child;
+          addRef(child)
+        },
+        key: "link",
+        link: link,
+        x1: link.source.x,
+        y1: link.source.y,
+        x2: link.target.x,
+        y2: link.target.y
+      });
+    } else if (React.isValidElement(linkElement)){
+      linkDom = React.cloneElement(linkElement, {
+        addRef: child => {
+          this._link = child;
+          addRef(child)
+        },
+        key: "link",
+        link: link,
+        x1: link.source.x,
+        y1: link.source.y,
+        x2: link.target.x,
+        y2: link.target.y
+      })
+    } else if (typeof linkElement === 'object' || !linkElement) {
       const linkAttrs = {};
-      const hoverLinkAttrs = {}
-      Object.keys(getLink).forEach(attr => {
-        linkAttrs[attr] = typeof getLink[attr] === 'function' ? getLink[attr](link) : getLink[attr];
+      Object.keys(linkElement || {}).forEach(attr => {
+        linkAttrs[attr] = typeof linkElement[attr] === 'function' ? linkElement[attr](link) : linkElement[attr];
       });
-      Object.keys(hoverLink).forEach(attr => {
-        hoverLinkAttrs[attr] = typeof hoverLink[attr] === 'function' ? hoverLink[attr](link) : hoverLink[attr];
-      });
-      return [
-        <line
-          key="link"
-          ref={child => {
-            this._link = child;
-            addRef(child)
-          }}
-          {...getLink}
-          stroke="#333"
-          strokeWidth="1"
-          {...linkAttrs}
-          x1={link.source.x}
-          y1={link.source.y}
-          x2={link.target.x}
-          y2={link.target.y}
-        />,
-        <line
-          key="hover"
-          ref={child => {
-            this._hover_link = child;
-            addHoverRef(child)
-          }}
-          stroke="#fff"
-          strokeWidth="4"
-          opacity="0"
-          {...hoverLinkAttrs}
-          x1={link.source.x}
-          y1={link.source.y}
-          x2={link.target.x}
-          y2={link.target.y}
-        />,
-      ]
+      linkDom = <line
+        key="link"
+        ref={child => {
+          this._link = child;
+          addRef(child)
+        }}
+        stroke="#333"
+        strokeWidth="1"
+        {...linkAttrs}
+        x1={link.source.x}
+        y1={link.source.y}
+        x2={link.target.x}
+        y2={link.target.y}
+      />
+    } else {
+      throw new Error('prop linkElement isValid');
     }
+    const hoverLinkAttrs = {}
+    Object.keys(hoverLink).forEach(attr => {
+      hoverLinkAttrs[attr] = typeof hoverLink[attr] === 'function' ? hoverLink[attr](link) : hoverLink[attr];
+    });
+    return [
+      linkDom,
+      <line
+        key="hover"
+        ref={child => {
+          this._hover_link = child;
+          addHoverRef(child)
+        }}
+        stroke="#fff"
+        strokeWidth="4"
+        opacity="0"
+        {...hoverLinkAttrs}
+        x1={link.source.x}
+        y1={link.source.y}
+        x2={link.target.x}
+        y2={link.target.y}
+      />,
+    ]
   }
 
   render() {

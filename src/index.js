@@ -16,11 +16,11 @@ try {
   console.error(e);
 }
 
-if (module.hot) {
-  module.hot.accept(['./app'], () => {
-    setTimeout(() => {
-      ReactDOM.unmountComponentAtNode(MOUNT_NODE);
-      render();
-    });
-  });
-}
+// if (module.hot) {
+//   module.hot.accept(['./app'], () => {
+//     setTimeout(() => {
+//       ReactDOM.unmountComponentAtNode(MOUNT_NODE);
+//       render();
+//     });
+//   });
+// }

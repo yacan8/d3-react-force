@@ -34,6 +34,13 @@ class D3ReactForce extends React.Component {
     chargeStrength: CHARGE_STRENGTH,
     staticLayout: false,
     XYCenter: XY_CENTER,
+    nodeClick: noop,
+    nodeDbClick: noop,
+    nodeMouseover: noop,
+    nodeMouseout: noop,
+    linkClick: noop,
+    linkMouseover: noop,
+    linkMouseout: noop,
     tick: noop,
     end: noop
   }
@@ -106,7 +113,7 @@ class D3ReactForce extends React.Component {
       tick: this.tick,
       end: this.props.end
     });
-    this.setState({init: true});  // 解决初始化有nodes时 node先渲染，取不到this.drap问题
+    this.setState({ init: true });  // 解决初始化有nodes时 node先渲染，取不到this.drap问题
   }
 
   free = () => {
@@ -120,7 +127,7 @@ class D3ReactForce extends React.Component {
     const _Layout = Layout[layout];
     if (_Layout) {
       const { width, height } = this.props;
-      const options = Object.assign({width, height}, _options);
+      const options = Object.assign({ width, height }, _options);
       this[`${layout}Layout`] = new _Layout(options, this.force);
       return {
         execute: this.executeLayout.bind(this, layout)
@@ -272,7 +279,7 @@ class D3ReactForce extends React.Component {
                     this.linksDom[_key_] = c;
                   }} addHoverRef={c => {
                     this.hoverLinksDom[_key_] = c;
-                  }} link={link}/>
+                  }} link={link} />
                 })
               }
             </g>,
@@ -282,7 +289,7 @@ class D3ReactForce extends React.Component {
                   const _key_ = node[nodeIdKey];
                   return <Node key={_key_} parentComponment={this} addRef={c => {
                     this.nodesDom[_key_] = c
-                  }} node={node}/>
+                  }} node={node} />
                 })
               }
             </g>

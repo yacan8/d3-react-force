@@ -53,12 +53,16 @@ export default class Node extends React.Component {
 
   getNode = () => {
     const { node, parentComponment } = this.props;
-    const { getNode } = parentComponment.props;
-    if (getNode) {
-      if (typeof getNode === 'function') {
-        return getNode(node)
+    const { nodeElement } = parentComponment.props;
+    if (nodeElement) {
+      if (typeof nodeElement === 'function') {
+        return nodeElement(node)
+      } else if (React.isValidElement(nodeElement)) {
+        return React.cloneElement(nodeElement, {node: node});
+      } else {
+        throw new Error('prop nodeElement isValid');
+        return null;
       }
-      return React.cloneElement(getNode, {node: node});
     }
     return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#fff" />
   }
