@@ -1,5 +1,5 @@
 import React from 'react';
-import * as d3 from 'd3';
+import { select as d3_select, event as d3_event } from 'd3-selection';
 
 export default class Node extends React.Component {
 
@@ -12,9 +12,9 @@ export default class Node extends React.Component {
   initEvent = props => {
     const { node, parentComponent } = props;
     this.nodeDom._node.__data__ = node;
-    d3.select(this.nodeDom._node)
+    d3_select(this.nodeDom._node)
     .on('click', d => {
-      const event = d3.event;
+      const event = d3_event;
       event.stopPropagation();
       const { nodeClick, nodeDbClick } = parentComponent.props;
       if (d._clickid) {
@@ -37,11 +37,11 @@ export default class Node extends React.Component {
     })
     .on('mouseover', node => {
       const { nodeMouseover } = parentComponent.props;
-      nodeMouseover && nodeMouseover(node, d3.event);
+      nodeMouseover && nodeMouseover(node, d3_event);
     })
     .on('mouseout', node => {
       const { nodeMouseout } = parentComponent.props;
-      nodeMouseout && nodeMouseout(node, d3.event);
+      nodeMouseout && nodeMouseout(node, d3_event);
     })
     .call(parentComponent.force.drag)
     .on('mouseover.force', null)

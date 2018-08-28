@@ -1,5 +1,6 @@
 import React from 'react';
-import * as d3 from 'd3';
+import { select as d3_select } from 'd3-selection';
+import { zoomIdentity } from 'd3-zoom';
 import Simulation from './simulation';
 import Node from './node';
 import Link from './link';
@@ -74,16 +75,16 @@ class D3ReactForce extends React.Component {
     }
     if (!staticLayout) {
       nodes.forEach(node => {
-        d3.select(this.nodesDom[node[nodeIdKey]]).attr('transform', () => `translate(${node.x},${node.y})`);
+        d3_select(this.nodesDom[node[nodeIdKey]]).attr('transform', () => `translate(${node.x},${node.y})`);
       })
       links.forEach(link => {
-        d3.select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
+        d3_select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
           .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
           .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
           .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
           .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
         if (hasHoverLink) {
-          d3.select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
+          d3_select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
           .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
           .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
           .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
@@ -94,7 +95,7 @@ class D3ReactForce extends React.Component {
   }
 
   zoomTo = (transform) => {
-    this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(transform.translate[0], transform.translate[1]).scale(transform.scale));
+    this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(transform.translate[0], transform.translate[1]).scale(transform.scale));
   }
 
   componentDidMount() {
@@ -104,12 +105,12 @@ class D3ReactForce extends React.Component {
         start: zoomEvent.start,
         isZoom: zoomEvent.isZoom,
         zoom: (transform) => {
-          d3.select(this.mainDom.outg).attr('transform', `translate(${transform.translate})scale(${transform.scale})`)
+          d3_select(this.mainDom.outg).attr('transform', `translate(${transform.translate})scale(${transform.scale})`)
           zoomEvent.zoom && zoomEvent.zoom(transform);
         },
         end: zoomEvent.end
       }, scaleExtent);
-      d3.select(this.mainDom.svg).call(this.force.zoom).on('dblclick.zoom', null);
+      d3_select(this.mainDom.svg).call(this.force.zoom).on('dblclick.zoom', null);
       this.force.initDrag(dragEvent);
     }
     this.force.tick({
@@ -181,15 +182,15 @@ class D3ReactForce extends React.Component {
     translateX = width / 2 - minX * factor - offset.width / 2 * factor;
     translateY = height / 2 - minY * factor - offset.height / 2 * factor;
     if (animation) {
-      d3.select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${[translateX, translateY]})scale(${factor})`)
+      d3_select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${[translateX, translateY]})scale(${factor})`)
       let timer = setTimeout(() => {
-        this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
+        this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(translateX, translateY).scale(factor));
       }, duration);
     } else {
-      this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
+      this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(translateX, translateY).scale(factor));
     }
   }
-  
+
   // 执行里导向布局，直至静止
   execute = () => this.force.execute();
 
@@ -202,19 +203,19 @@ class D3ReactForce extends React.Component {
       }
     } else {
       if (animation) {
-        d3.select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${translate})scale(${scale})`)
+        d3_select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${translate})scale(${scale})`)
         setTimeout(() => {
-          this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(scale));
+          this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(scale));
         }, duration);
       } else {
-        this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(scale));
+        this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(scale));
       }
     }
   }
 
   zoom = (_scale) => {
     const { translate, scale } = this.force;
-    this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(_scale * scale));
+    this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(_scale * scale));
   }
 
   transformPosition = () => {
@@ -222,10 +223,10 @@ class D3ReactForce extends React.Component {
     const { nodeIdKey, duration } = props;
     const { nodes, links } = force;
     nodes.forEach(node => {
-      d3.select(this.nodesDom[node[nodeIdKey]]).transition().duration(duration).attr('transform', () => `translate(${node.x},${node.y})`);
+      d3_select(this.nodesDom[node[nodeIdKey]]).transition().duration(duration).attr('transform', () => `translate(${node.x},${node.y})`);
     })
     links.forEach(link => {
-      d3.select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
+      d3_select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
         .transition().duration(duration)
         .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
         .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)

@@ -1,5 +1,5 @@
 import React from 'react';
-import * as d3 from 'd3';
+import { select as d3_select, event as d3_event } from 'd3-selection';
 
 export default class Link extends React.Component {
 
@@ -14,12 +14,12 @@ export default class Link extends React.Component {
     let { link, parentComponent } = this.props;
     _self.linkDom._link.__data__ = link;
     const { linkClick, linkMouseover, linkMouseout, hasHoverLink } = parentComponent.props;
-    d3.select(hasHoverLink ? this.linkDom._hover_link : this.linkDom._link).on('click', () => {
-      linkClick(_self.props.link, d3.event, _self)
+    d3_select(hasHoverLink ? this.linkDom._hover_link : this.linkDom._link).on('click', () => {
+      linkClick(_self.props.link, d3_event, _self)
     }).on('mouseover', () => {
-      linkMouseover(_self.props.link, d3.event, _self)
+      linkMouseover(_self.props.link, d3_event, _self)
     }).on('mouseout', () => {
-      linkMouseout(_self.props.link, d3.event, _self)
+      linkMouseout(_self.props.link, d3_event, _self)
     })
   }
 

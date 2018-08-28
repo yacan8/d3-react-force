@@ -1,4 +1,7 @@
-import * as d3 from 'd3';
+import { forceCenter, forceLink, forceCollide, forceX, forceY, forceManyBody, forceSimulation } from 'd3-force';
+import * as d3Zoom from 'd3-zoom';
+import * as d3Drag from 'd3-drag';
+import { event as d3_event } from 'd3-selection';
 import { WIDTH, HEIGHT, NODE_ID_KEY, noop } from './default';
 
 export default class Simulation {
@@ -14,7 +17,7 @@ export default class Simulation {
   scale = 1;
 
   constructor(options, simulation) {
-    const _simulation = simulation || d3.forceSimulation();
+    const _simulation = simulation || forceSimulation();
     this.simulation = _simulation;
     this.setSimulationLayout(options);
   }
@@ -38,37 +41,37 @@ export default class Simulation {
     if (alphaDecay) {
       this.simulation.alphaDecay(alphaDecay);
     }
-    const forceLink = d3.forceLink();
+    const _forceLink = forceLink();
     if (nodeIdKey) {
-      forceLink.id(d => d[nodeIdKey]);
+      _forceLink.id(d => d[nodeIdKey]);
     }
     if (linkDistance) {
-      forceLink.distance(linkDistance);
+      _forceLink.distance(linkDistance);
     }
-    this.simulation.force('link', forceLink);
-    // this.simulation.force('center', d3.forceCenter());
+    this.simulation.force('link', _forceLink);
+    // this.simulation.force('center', forceCenter());
 
     if (collideRadius || collideStrength) {
-      const forceCollide = d3.forceCollide();
+      const _forceCollide = forceCollide();
       if (collideRadius) {
-        forceCollide.radius(typeof collideRadius === 'function' ? (d) => {
+        _forceCollide.radius(typeof collideRadius === 'function' ? (d) => {
           return collideRadius(d);
         } : collideRadius);
       }
       if (collideStrength) {
-        forceCollide.strength(collideStrength);
+        _forceCollide.strength(collideStrength);
       }
-      this.simulation.force('collide', forceCollide);
+      this.simulation.force('collide', _forceCollide);
     } else {
       this.simulation.force('collide', null);
     }
 
     if (chargeStrength) {
-      this.simulation.force("charge", d3.forceManyBody().strength(chargeStrength));
+      this.simulation.force("charge", forceManyBody().strength(chargeStrength));
     }
     if (XYCenter) {
-      this.simulation.force('x', d3.forceX(XYCenter && XYCenter.x || undefined))
-      this.simulation.force('y', d3.forceY(XYCenter && XYCenter.y || undefined))
+      this.simulation.force('x', forceX(XYCenter && XYCenter.x || undefined))
+      this.simulation.force('y', forceY(XYCenter && XYCenter.y || undefined))
     } else {
       this.simulation.force('x', null);
       this.simulation.force('y', null);
@@ -141,10 +144,10 @@ export default class Simulation {
   }
 
   initDrag(event = {}) {
-    const drag = d3.drag()
+    const drag = d3Drag.drag()
       .on('start', (d) => {
         if (event.isDrag && event.isDrag(d) || !event.isDrag) {
-          if (!d3.event.active) {
+          if (!d3_event.active) {
             this.simulation.alphaTarget(0.5).restart();
           }
           event.start && event.start(d);
@@ -152,14 +155,14 @@ export default class Simulation {
       })
       .on('drag', d => {
         if (event.isDrag && event.isDrag(d) || !event.isDrag) {
-          d.fx = d.x = d3.event.x;
-          d.fy = d.y = d3.event.y;
+          d.fx = d.x = d3_event.x;
+          d.fy = d.y = d3_event.y;
           event.drag && event.drag(d);
         }
       })
       .on('end', d => {
         if (event.isDrag && event.isDrag(d) || !event.isDrag) {
-          if (!d3.event.active) {
+          if (!d3_event.active) {
             this.simulation.alphaTarget(0);
           }
           d.fx = null;
@@ -177,13 +180,13 @@ export default class Simulation {
 
   initZoom(event, scaleExtent) {
     const isZoom = event.isZoom || noop;
-    const zoom = d3.zoom()
+    const zoom = d3Zoom.zoom()
       .on('start', (d) => {
         event.start && event.start(d);
       })
       .on('zoom', () => {
-        if (isZoom(d3.event) !== false) {
-          const transform = d3.event.transform;
+        if (isZoom(d3_event) !== false) {
+          const transform = d3_event.transform;
           const translate = [transform.x, transform.y], scale = transform.k;
           this.setTransform(translate, scale);
           event.zoom && event.zoom({translate, scale});
