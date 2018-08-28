@@ -58,7 +58,11 @@ export default class Link extends React.Component {
     if (typeof linkElement === 'function') {
       return React.cloneElement(linkElement(link), linkProps);
     } else if (React.isValidElement(linkElement)){
-      return React.cloneElement(linkElement, linkProps)
+      const { ref, ...nestProps } = linkProps;
+      return React.cloneElement(linkElement, {...nestProps, addRef: child => {
+        this.linkDom._link = child;
+        addRef(child);
+      }})
     } else if (typeof linkElement === 'object' || !linkElement) {
       const linkAttrs = this.getObjectProps(linkElement);
       return <line
