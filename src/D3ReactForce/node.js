@@ -3,19 +3,20 @@ import * as d3 from 'd3';
 
 export default class Node extends React.Component {
 
+  nodeDom = {}
+
   componentWillReceiveProps(nextProps) {
-    this._node.__data__ = nextProps.node; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
+    this.nodeDom._node.__data__ = nextProps.node; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
   }
 
-
   initEvent = props => {
-    const { node, parentComponment } = props;
-    this._node.__data__ = node;
-    const nodeDom = d3.select(this._node)
+    const { node, parentComponent } = props;
+    this.nodeDom._node.__data__ = node;
+    d3.select(this.nodeDom._node)
     .on('click', d => {
       const event = d3.event;
       event.stopPropagation();
-      const { nodeClick, nodeDbClick } = parentComponment.props;
+      const { nodeClick, nodeDbClick } = parentComponent.props;
       if (d._clickid) {
         clearTimeout(d._clickid);
         d._clickid = null;
@@ -35,14 +36,14 @@ export default class Node extends React.Component {
       }
     })
     .on('mouseover', node => {
-      const { nodeMouseover } = parentComponment.props;
+      const { nodeMouseover } = parentComponent.props;
       nodeMouseover && nodeMouseover(node, d3.event);
     })
     .on('mouseout', node => {
-      const { nodeMouseout } = parentComponment.props;
+      const { nodeMouseout } = parentComponent.props;
       nodeMouseout && nodeMouseout(node, d3.event);
     })
-    .call(parentComponment.force.drag)
+    .call(parentComponent.force.drag)
     .on('mouseover.force', null)
     .on('mouseout.force', null);
   }
@@ -52,8 +53,8 @@ export default class Node extends React.Component {
   }
 
   getNode = () => {
-    const { node, parentComponment } = this.props;
-    const { nodeElement } = parentComponment.props;
+    const { node, parentComponent } = this.props;
+    const { nodeElement } = parentComponent.props;
     if (nodeElement) {
       if (typeof nodeElement === 'function') {
         return nodeElement(node)
@@ -61,18 +62,17 @@ export default class Node extends React.Component {
         return React.cloneElement(nodeElement, {node: node});
       } else {
         throw new Error('prop nodeElement isValid');
-        return null;
       }
     }
     return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#fff" />
   }
 
   render() {
-    const { node, addRef, parentComponment } = this.props;
-    const { nodeIdKey, width, height, nodeProps } = parentComponment.props;
+    const { node, addRef, parentComponent } = this.props;
+    const { nodeIdKey, width, height, nodeProps } = parentComponent.props;
     return (
       <g ref={child => {
-          this._node = child;
+          this.nodeDom._node = child;
           addRef(child);
         }}
         {...nodeProps}

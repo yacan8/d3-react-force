@@ -13,9 +13,9 @@ export default class Simulation {
   translate = [0, 0];
   scale = 1;
 
-  constructor(options) {
-    const simulation = d3.forceSimulation();
-    this.simulation = simulation;
+  constructor(options, simulation) {
+    const _simulation = simulation || d3.forceSimulation();
+    this.simulation = _simulation;
     this.setSimulationLayout(options);
   }
 
@@ -143,23 +143,29 @@ export default class Simulation {
   initDrag(event = {}) {
     const drag = d3.drag()
       .on('start', (d) => {
-        if (!d3.event.active) {
-          this.simulation.alphaTarget(0.5).restart();
+        if (event.isDrag && event.isDrag(d) || !event.isDrag) {
+          if (!d3.event.active) {
+            this.simulation.alphaTarget(0.5).restart();
+          }
+          event.start && event.start(d);
         }
-        event.start && event.start(d);
       })
       .on('drag', d => {
-        d.fx = d.x = d3.event.x;
-        d.fy = d.y = d3.event.y;
-        event.drag && event.drag(d);
+        if (event.isDrag && event.isDrag(d) || !event.isDrag) {
+          d.fx = d.x = d3.event.x;
+          d.fy = d.y = d3.event.y;
+          event.drag && event.drag(d);
+        }
       })
       .on('end', d => {
-        if (!d3.event.active) {
-          this.simulation.alphaTarget(0);
+        if (event.isDrag && event.isDrag(d) || !event.isDrag) {
+          if (!d3.event.active) {
+            this.simulation.alphaTarget(0);
+          }
+          d.fx = null;
+          d.fy = null;
+          event.end && event.end(d);
         }
-        d.fx = null;
-        d.fy = null;
-        event.end && event.end(d);
       });
     this.drag = drag;
   }
@@ -190,6 +196,15 @@ export default class Simulation {
         zoom.scaleExtent(scaleExtent)
       }
       this.zoom = zoom
+  }
+
+
+  execute = () => {
+    const { simulation, nodes } =  this;
+    simulation.stop();
+    for (var i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+      simulation.tick();
+    }
   }
 
 }

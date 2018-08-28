@@ -1,9 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const webpack = require('webpack');
 const isDebug = process.env.NODE_ENV === 'development';
-const host = '127.0.0.1';
-const port = '9000';
 
 const config = {
   entry: './src/index',
@@ -19,14 +16,11 @@ const config = {
           babelrc: false,
           presets: [
             'react-hmre',
-            'es2015-ie',
             'react',
             'stage-2'
           ],
           plugins: [
-            'transform-decorators-legacy',
             'transform-class-properties',
-            'transform-runtime'
           ]
         },
         include: path.join(__dirname, 'src')

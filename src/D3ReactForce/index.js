@@ -18,7 +18,6 @@ import {
   noop
 } from './default';
 
-const duration = 500;
 
 class D3ReactForce extends React.Component {
   static defaultProps = {
@@ -42,24 +41,27 @@ class D3ReactForce extends React.Component {
     linkMouseover: noop,
     linkMouseout: noop,
     tick: noop,
-    end: noop
+    end: noop,
+    duration: 500,
+    hasHoverLink: true
   }
 
+  nodesDom = {}; // 保存节点的dom
+  linksDom = {}; // 保存边的dom
+  hoverLinksDom = {}; // 保存hover边的dom
+  mainDom = {}; // 保存节点的包裹节点的dom，直接存this下的话react可能有bug，取不到
+  state = {
+    init: false
+  }
   constructor(props) {
     super(props);
-    const { nodes, links, staticLayout } = props;
-    this.nodesDom = {};
-    this.linksDom = {};
-    this.hoverLinksDom = {};
-    this.force = new Simulation(props);
+    const { nodes, links, simulation } = props;
+    this.force = new Simulation(props, simulation);
     this.force.setNodesLinks(nodes, links);
-    this.state = {
-      init: false
-    }
   }
 
   tick = (alpha) => {
-    const { nodeIdKey, tick, staticLayout, end } = this.props;
+    const { nodeIdKey, tick, staticLayout, hasHoverLink } = this.props;
     const { force } = this;
     const { nodes, links } = this.force;
     if (tick) {
@@ -80,18 +82,19 @@ class D3ReactForce extends React.Component {
           .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
           .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
           .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
-
-        d3.select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
+        if (hasHoverLink) {
+          d3.select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
           .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
           .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
           .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
           .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
+        }
       })
     }
   }
 
   zoomTo = (transform) => {
-    this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(transform.translate[0], transform.translate[1]).scale(transform.scale));
+    this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(transform.translate[0], transform.translate[1]).scale(transform.scale));
   }
 
   componentDidMount() {
@@ -101,12 +104,12 @@ class D3ReactForce extends React.Component {
         start: zoomEvent.start,
         isZoom: zoomEvent.isZoom,
         zoom: (transform) => {
-          d3.select(this.outg).attr('transform', `translate(${transform.translate})scale(${transform.scale})`)
+          d3.select(this.mainDom.outg).attr('transform', `translate(${transform.translate})scale(${transform.scale})`)
           zoomEvent.zoom && zoomEvent.zoom(transform);
         },
         end: zoomEvent.end
       }, scaleExtent);
-      d3.select(this.svg).call(this.force.zoom).on('dblclick.zoom', null);
+      d3.select(this.mainDom.svg).call(this.force.zoom).on('dblclick.zoom', null);
       this.force.initDrag(dragEvent);
     }
     this.force.tick({
@@ -152,7 +155,7 @@ class D3ReactForce extends React.Component {
   // 居中
   adaption = (animation = false) => {
     const padding = 20;
-    const { width, height } = this.props;
+    const { width, height, duration } = this.props;
     const { nodes } = this.force;
     let minX = 0, minY = 0, maxX = 0, maxY = 0;
     if (nodes.length) {
@@ -178,16 +181,20 @@ class D3ReactForce extends React.Component {
     translateX = width / 2 - minX * factor - offset.width / 2 * factor;
     translateY = height / 2 - minY * factor - offset.height / 2 * factor;
     if (animation) {
-      d3.select(this.outg).transition().duration(duration).attr('transform', `translate(${[translateX, translateY]})scale(${factor})`)
+      d3.select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${[translateX, translateY]})scale(${factor})`)
       let timer = setTimeout(() => {
-        this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
+        this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
       }, duration);
     } else {
-      this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
+      this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(translateX, translateY).scale(factor));
     }
   }
+  
+  // 执行里导向布局，直至静止
+  execute = () => this.force.execute();
 
   transform = (translate, scale, animation) => {
+    const { duration } = this.props;
     if (!translate && !scale) {
       return {
         translate: this.force.translate,
@@ -195,24 +202,24 @@ class D3ReactForce extends React.Component {
       }
     } else {
       if (animation) {
-        d3.select(this.outg).transition().duration(duration).attr('transform', `translate(${translate})scale(${scale})`)
+        d3.select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${translate})scale(${scale})`)
         setTimeout(() => {
-          this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(...translate).scale(scale));
+          this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(scale));
         }, duration);
       } else {
-        this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(...translate).scale(scale));
+        this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(scale));
       }
     }
   }
 
   zoom = (_scale) => {
     const { translate, scale } = this.force;
-    this.force.zoom.transform(d3.select(this.svg), d3.zoomIdentity.translate(...translate).scale(_scale * scale));
+    this.force.zoom.transform(d3.select(this.mainDom.svg), d3.zoomIdentity.translate(...translate).scale(_scale * scale));
   }
 
   transformPosition = () => {
     const { force, props } = this;
-    const { nodeIdKey } = props;
+    const { nodeIdKey, duration } = props;
     const { nodes, links } = force;
     nodes.forEach(node => {
       d3.select(this.nodesDom[node[nodeIdKey]]).transition().duration(duration).attr('transform', () => `translate(${node.x},${node.y})`);
@@ -258,8 +265,7 @@ class D3ReactForce extends React.Component {
 
   render() {
     let { width, height, nodeIdKey, staticLayout, svgProps, outgProps } = this.props;
-    let { translate, scale, nodes, links, drag } = this.force;
-    let staticLayoutTransform = {};
+    let { translate, scale, nodes, links } = this.force;
     if (staticLayout) {
       const getStaticLayoutTransform = this.getStaticLayoutTransform();
       width = getStaticLayoutTransform.width;
@@ -267,18 +273,18 @@ class D3ReactForce extends React.Component {
       translate = getStaticLayoutTransform.translate;
       scale = getStaticLayoutTransform.scale;
     }
-    return <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" ref={svg => this.svg = svg} width={width} height={height} {...svgProps}>
-      <g ref={outg => this.outg = outg} transform={`translate(${translate})scale(${scale})`} {...outgProps}>
+    return <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" ref={svg => this.mainDom.svg = svg} width={width} height={height} {...svgProps}>
+      <g ref={outg => this.mainDom.outg = outg} transform={`translate(${translate})scale(${scale})`} {...outgProps}>
         {
           this.state.init || staticLayout ? [
             <g key="nodes">
               {
                 links.map((link, i) => {
-                  const _key_ = `${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`
-                  return <Link key={_key_} parentComponment={this} addRef={c => {
-                    this.linksDom[_key_] = c;
+                  const key = `${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`
+                  return <Link key={key} parentComponent={this} addRef={c => {
+                    this.linksDom[key] = c;
                   }} addHoverRef={c => {
-                    this.hoverLinksDom[_key_] = c;
+                    this.hoverLinksDom[key] = c;
                   }} link={link} />
                 })
               }
@@ -286,9 +292,9 @@ class D3ReactForce extends React.Component {
             <g key="links">
               {
                 nodes.map((node, i) => {
-                  const _key_ = node[nodeIdKey];
-                  return <Node key={_key_} parentComponment={this} addRef={c => {
-                    this.nodesDom[_key_] = c
+                  const key = node[nodeIdKey];
+                  return <Node key={key} parentComponent={this} addRef={c => {
+                    this.nodesDom[key] = c
                   }} node={node} />
                 })
               }

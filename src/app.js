@@ -1,17 +1,8 @@
 import React from 'react';
-import { renderToString } from 'react-dom/server';
 import D3ReactForce from './D3ReactForce';
-import { generate } from 'ant-design-palettes';
-// import data from './mock/data1.json';
-import dataLarge from './mock/data2.json';
-import { getData } from './getData';
-// const { nodes, links } = data;
+import data from './mock/data.json';
+const { nodes, links } = data;
 
-const { nodes, links } = getData(dataLarge[0].nodes.slice(0), dataLarge[0].edges.slice(0), 400);
-// const { nodes } = dataLarge[0];
-// const links = dataLarge[0].edges;
-const colors = generate('rgb(9, 36, 74)');
-const { Simulation } = D3ReactForce;
 let index = 1;
 export default class App extends React.Component {
   constructor(props) {
@@ -33,23 +24,12 @@ export default class App extends React.Component {
     this.chargeStrength = -1500;
     this.count = 400;
     this.alphaDecay = 0.005;
-    // this.alphaMin = 0.1;
   }
 
-  // componentDidMount() {
-  //   window.onresize = () => {
-  //     this.setState({
-  //       width: document.documentElement.clientWidth,
-  //       height: document.documentElement.clientHeight
-  //     })
-  //   }
-  // }
-
-  onClick = e => {
+  addNode = () => {
     const { nodes } = this.state;
     nodes.push({
-      nodeId: `index${index++}`,
-      degree: 0
+      nodeId: `index${index++}`
     })
     this.setState({
       nodes: nodes.slice(0)
@@ -79,7 +59,7 @@ export default class App extends React.Component {
         right: 0,
         top: 0
       }}>
-        <button onClick={this.onClick}>
+        <button onClick={() => this.addNode()}>
           添加一个节点
         </button>
         <button onClick={() => { this.D3ReactForce.adaption() }}>
@@ -162,8 +142,6 @@ export default class App extends React.Component {
           nodes={nodes}
           links={links}
           nodeIdKey="nodeId"
-          sourceKey="srcId"
-          targetKey="targetId"
           width={width}
           height={height}
           velocityDecay={velocityDecay}
@@ -182,20 +160,6 @@ export default class App extends React.Component {
           }}
           end={() => {
             console.log('结束');
-          }}
-          getLink={{
-            stroke: () => '#ddd',
-            strokeWidth: () => 1,
-          }}
-          getNode={(node) => {
-            let color;
-            if (node.degree) {
-              color = node.degree > 9 ? colors[9] : colors[node.degree];
-            } else {
-              color = colors[0];
-            }
-            // return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#fff" />;
-            return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke={color} fill="#fff" />
           }}
         />
     	</div>
