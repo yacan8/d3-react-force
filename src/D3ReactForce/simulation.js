@@ -90,20 +90,15 @@ export default class Simulation {
   initNodes(nodes) {
     const { nodeIdKey, width, height } = this;
     const nodesMap = {};
-    const newNodes = [];
+    const originNodes = [];
     nodes.forEach(node => {
       node.x = node.x || width / 2;
       node.y = node.y || height / 2;
-      if (!this.nodesMap[node[nodeIdKey]]) {
-        nodesMap[node[nodeIdKey]] = node;
-        newNodes.push(node);
-      } else {
-        nodesMap[node[nodeIdKey]] = this.nodesMap[node[nodeIdKey]];
-        newNodes.push(this.nodesMap[node[nodeIdKey]]);
-      }
+      nodesMap[node[nodeIdKey]] = node;
+      originNodes.push(node);
     })
     this.nodesMap = nodesMap;
-    this.nodes = newNodes;
+    this.nodes = originNodes;
   }
 
   initLinks(links) {

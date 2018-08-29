@@ -20,28 +20,22 @@ export default class Node extends React.Component {
       if (d._clickid) {
         clearTimeout(d._clickid);
         d._clickid = null;
-        if (nodeClick) {
-          nodeClick(d, event);
-        }
-        if (nodeDbClick) {
-          nodeDbClick(d, event);
-        }
+        nodeClick(d, event);
+        nodeDbClick(d, event);
       } else {
         d._clickid = setTimeout(() => {
-          if (nodeClick) {
-            nodeClick(d, event);
-          }
+          nodeClick(d, event);
           d._clickid = null;
         }, 300);
       }
     })
     .on('mouseover', node => {
       const { nodeMouseover } = parentComponent.props;
-      nodeMouseover && nodeMouseover(node, d3_event);
+      nodeMouseover(node, d3_event, this);
     })
     .on('mouseout', node => {
       const { nodeMouseout } = parentComponent.props;
-      nodeMouseout && nodeMouseout(node, d3_event);
+      nodeMouseout(node, d3_event, this);
     })
     .call(parentComponent.force.drag)
     .on('mouseover.force', null)
@@ -64,7 +58,7 @@ export default class Node extends React.Component {
         throw new Error('prop nodeElement isValid');
       }
     }
-    return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#fff" />
+    return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#4098e2" />
   }
 
   render() {

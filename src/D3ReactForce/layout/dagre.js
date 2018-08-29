@@ -1,7 +1,7 @@
 /**
  * 分层布局
  * https://github.com/dagrejs/dagre/wiki
- * @author can.yang@tongdun.cn
+ * @author can.yang
  */
 import Base from './base';
 import dagre from 'dagre';

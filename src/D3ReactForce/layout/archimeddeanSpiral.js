@@ -2,7 +2,7 @@
 /**
  * @fileOverview 阿基米德螺线布局
  * https://zh.wikipedia.org/wiki/%E9%98%BF%E5%9F%BA%E7%B1%B3%E5%BE%B7%E8%9E%BA%E7%BA%BF
- * @author can.yang@tongdun.cn
+ * @author can.yang
  */
 import Base from './base';
 

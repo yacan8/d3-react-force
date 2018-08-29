@@ -5,7 +5,8 @@ import Simulation from './simulation';
 import Node from './node';
 import Link from './link';
 import Layout from './layout';
-import _ from 'lodash';
+import _minBy from 'lodash/minBy';
+import _maxBy from 'lodash/maxBy';
 import {
   WIDTH,
   HEIGHT,
@@ -62,8 +63,7 @@ class D3ReactForce extends React.Component {
   }
 
   tick = (alpha) => {
-    const { nodeIdKey, tick, staticLayout, hasHoverLink } = this.props;
-    const { force } = this;
+    const { tick, staticLayout } = this.props;
     const { nodes, links } = this.force;
     if (tick) {
       tick(alpha, {
@@ -74,28 +74,35 @@ class D3ReactForce extends React.Component {
       })
     }
     if (!staticLayout) {
-      nodes.forEach(node => {
-        d3_select(this.nodesDom[node[nodeIdKey]]).attr('transform', () => `translate(${node.x},${node.y})`);
-      })
-      links.forEach(link => {
-        d3_select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
-          .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
-          .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
-          .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
-          .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
-        if (hasHoverLink) {
-          d3_select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
-          .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
-          .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
-          .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
-          .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
-        }
-      })
+      nodes.forEach(node => this.nodeTick(node))
+      links.forEach(link => this.linkTick(link))
     }
   }
 
-  zoomTo = (transform) => {
-    this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(transform.translate[0], transform.translate[1]).scale(transform.scale));
+  linkTick = (link, animation = false) => {
+    const { force, props } = this;
+    const { nodeIdKey, hasHoverLink, duration } = props;
+    let linkDom = d3_select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`]);
+    if (animation) linkDom = linkDom.transition().duration(duration);
+    linkDom.attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
+      .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
+      .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
+      .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
+    if (hasHoverLink) {
+      let hoverLinkDom = d3_select(this.hoverLinksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
+      if (animation) hoverLinkDom = hoverLinkDom.transition().duration(duration);
+      hoverLinkDom.attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
+        .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
+        .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
+        .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
+    }
+  }
+
+  nodeTick = (node, animation = false) => {
+    const { nodeIdKey, duration } = this.props;
+    let nodeDom = d3_select(this.nodesDom[node[nodeIdKey]])
+    if (animation) nodeDom = nodeDom.transition().duration(duration);
+    nodeDom.attr('transform', () => `translate(${node.x},${node.y})`);
   }
 
   componentDidMount() {
@@ -121,9 +128,7 @@ class D3ReactForce extends React.Component {
   }
 
   free = () => {
-    this.force.nodes.forEach(node => {
-      node.fx = node.fy = null;
-    })
+    this.force.nodes.forEach(node => node.fx = node.fy = null)
     this.force.simulation.alpha(1).restart();
   }
 
@@ -160,10 +165,10 @@ class D3ReactForce extends React.Component {
     const { nodes } = this.force;
     let minX = 0, minY = 0, maxX = 0, maxY = 0;
     if (nodes.length) {
-      minX = _.minBy(nodes, 'x').x
-      minY = _.minBy(nodes, 'y').y
-      maxX = _.maxBy(nodes, 'x').x
-      maxY = _.maxBy(nodes, 'y').y
+      minX = _minBy(nodes, 'x').x
+      minY = _minBy(nodes, 'y').y
+      maxX = _maxBy(nodes, 'x').x
+      maxY = _maxBy(nodes, 'y').y
     }
     const offset = {
       width: maxX - minX,
@@ -183,7 +188,7 @@ class D3ReactForce extends React.Component {
     translateY = height / 2 - minY * factor - offset.height / 2 * factor;
     if (animation) {
       d3_select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${[translateX, translateY]})scale(${factor})`)
-      let timer = setTimeout(() => {
+      setTimeout(() => {
         this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(translateX, translateY).scale(factor));
       }, duration);
     } else {
@@ -194,6 +199,10 @@ class D3ReactForce extends React.Component {
   // 执行里导向布局，直至静止
   execute = () => this.force.execute();
 
+  originTransform = (dom, transform) => {
+    this.force.zoom.transform(dom, transform)
+  }
+
   transform = (translate, scale, animation) => {
     const { duration } = this.props;
     if (!translate && !scale) {
@@ -202,37 +211,28 @@ class D3ReactForce extends React.Component {
         scale: this.force.scale
       }
     } else {
+      const _zoomIdentity = zoomIdentity.translate(...translate).scale(scale);
       if (animation) {
         d3_select(this.mainDom.outg).transition().duration(duration).attr('transform', `translate(${translate})scale(${scale})`)
         setTimeout(() => {
-          this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(scale));
+          this.originTransform(d3_select(this.mainDom.svg), _zoomIdentity);
         }, duration);
       } else {
-        this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(scale));
+        this.originTransform(d3_select(this.mainDom.svg), _zoomIdentity);
       }
     }
   }
 
   zoom = (_scale) => {
     const { translate, scale } = this.force;
-    this.force.zoom.transform(d3_select(this.mainDom.svg), zoomIdentity.translate(...translate).scale(_scale * scale));
+    const _zoomIdentity = zoomIdentity.translate(...translate).scale(_scale * scale);
+    this.originTransform(d3_select(this.mainDom.svg), _zoomIdentity);
   }
 
   transformPosition = () => {
-    const { force, props } = this;
-    const { nodeIdKey, duration } = props;
-    const { nodes, links } = force;
-    nodes.forEach(node => {
-      d3_select(this.nodesDom[node[nodeIdKey]]).transition().duration(duration).attr('transform', () => `translate(${node.x},${node.y})`);
-    })
-    links.forEach(link => {
-      d3_select(this.linksDom[`${link.source[nodeIdKey]}_${link.target[nodeIdKey]}`])
-        .transition().duration(duration)
-        .attr('x1', () => force.nodesMap[link.source[nodeIdKey]].x)
-        .attr('y1', () => force.nodesMap[link.source[nodeIdKey]].y)
-        .attr('x2', () => force.nodesMap[link.target[nodeIdKey]].x)
-        .attr('y2', () => force.nodesMap[link.target[nodeIdKey]].y);
-    })
+    const { nodes, links } = this.force;
+    nodes.forEach(node => this.nodeTick(node, true));
+    links.forEach(link => this.linkTick(link, true));
   }
 
   forceEndTick = () => {

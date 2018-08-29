@@ -1,6 +1,6 @@
 /**
  * 圆形布局
- * @author can.yang@tongdun.cn
+ * @author can.yang
  */
 import Base from './base';
 import is from './is';

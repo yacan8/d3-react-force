@@ -1,6 +1,6 @@
 /**
  * @fileOverview 栅格布局
- * @author can.yang@tongdun.cn
+ * @author can.yang
  */
 import Base from './base';
 

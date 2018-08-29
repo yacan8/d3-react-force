@@ -9,17 +9,16 @@ export default class Link extends React.Component {
     this.linkDom._link.__data__ = nextProps.link;
   }
 
-  componentDidMount() {
-    const _self = this;
+  componentDidMount = () => {
     let { link, parentComponent } = this.props;
-    _self.linkDom._link.__data__ = link;
+    this.linkDom._link.__data__ = link;
     const { linkClick, linkMouseover, linkMouseout, hasHoverLink } = parentComponent.props;
     d3_select(hasHoverLink ? this.linkDom._hover_link : this.linkDom._link).on('click', () => {
-      linkClick(_self.props.link, d3_event, _self)
+      linkClick(this.props.link, d3_event, this)
     }).on('mouseover', () => {
-      linkMouseover(_self.props.link, d3_event, _self)
+      linkMouseover(this.props.link, d3_event, this)
     }).on('mouseout', () => {
-      linkMouseout(_self.props.link, d3_event, _self)
+      linkMouseout(this.props.link, d3_event, this)
     })
   }
 
@@ -66,7 +65,7 @@ export default class Link extends React.Component {
     } else if (typeof linkElement === 'object' || !linkElement) {
       const linkAttrs = this.getObjectProps(linkElement);
       return <line
-        stroke="#333"
+        stroke="#999"
         strokeWidth="1"
         {...linkAttrs}
         {...linkProps}
