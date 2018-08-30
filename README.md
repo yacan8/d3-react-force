@@ -2,6 +2,13 @@
 
 react版d3-force封装，简化d3-force配置。
 
+## 安装
+
+```
+npm install d3-react-force
+// yarn add d3-react-force
+```
+
 ## 在线演示
 
 [https://yacan8.github.io/d3-react-force/](https://yacan8.github.io/d3-react-force/)
