@@ -1,6 +1,10 @@
-# 复杂网络可视化组件
+# d3-react-force
 
-简化复杂网络代码，尽量组件化视图操作，让逻辑代码更侧重于业务。
+react版d3-force封装，简化d3-force配置。
+
+## 在线演示
+
+[https://yacan8.github.io/d3-react-force/](https://yacan8.github.io/d3-react-force/)
 
 ## props参数
 
@@ -13,13 +17,13 @@
 | linkDistance   | 连线长度                                         | number或(link) => number |  0.1  |
 | collideRadius  | 节点碰撞半径                                     | number或(node) => number |  0  |
 | collideStrength| 节点碰撞强度，0~1之间                             |  number |  0.5 |
-| chargeStrength | 节点之间作用力，整数为引力，负数为斥力               |  number |  -10 |
-| staticLayout   | 是否为静态布局（需要事先使用/simulation.js计算节点位置）| boolean |  false |
-| XYCenter       | 是否添加x、y作用力，居中效果，避免不连通图游离        | boolean或Object |  {x: 0, y: 0} |
-| tick           | 动画回调，每一帧                                 | function(alpah) | noop |
+| chargeStrength | 节点之间作用力，整数为引力，负数为斥力               |  number |  -10 |
+| staticLayout   | 是否为静态布局（需要事先使用/simulation.js计算节点位置）| boolean |  false |
+| XYCenter       | 是否添加x、y作用力，居中效果，避免不连通图游离        | boolean或Object |  {x: 0, y: 0} |
+| tick           | 动画回调，每一帧                                 | function(alpah) | noop |
 | end            | tick结束回调                                    | function  | noop |
-| getNode        | 节点                       | React.Element或(node)=> React.Element  | circle |
-| getLink        | 边                         | (link, addRef) => React.Element或object  | link |
+| NodeElement    | 节点                       | React.Element或(node)=> React.Element  | circle |
+| LinkElement    | 边                         | (link, addRef) => React.Element或object  | link |
 | nodeClick      | 节点点击事件                                    | function(node, d3.event)  | noop |
 | nodeDbClick    | 节点双击事件                                    | function(node, d3.event)  | noop |
 | nodeMouseover  | 节点mouseover事件                              | function(node, d3.event)  | noop |
@@ -27,7 +31,7 @@
 | linkClick      | 边点击事件                                    | function(link, d3.event)  | noop |
 | linkMouseover  | 边mouseover事件                              | function(link, d3.event)  | noop |
 | linkMouseout   | 边mouseout事件                               | function(link, d3.event)  | noop |
-| dragEvent      | 节点拖拽事件，start、drag、end三个事件函数        | Object  | {} |
+| dragEvent      | 节点拖拽事件，start、isDrag、drag、end四个事件函数 isDrag判断是否拖拽，返回boolean | Object  | {} |
 | zoomEvent      | 缩放事件，start、isZoom、zoom、end四个事件函数，isZoom判断是否缩放，返回boolean | Object  | {} |
 
 ## API
@@ -53,3 +57,7 @@
 ### free()
 
 布局释放，布局layout后节点x、y固定，使用free方法释放节点，变成力导向布局。
+
+### execute()
+
+同步执行里导向布局至静止，注意：不会更新视图，需要手动执行tick更新视图。

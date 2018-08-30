@@ -15,7 +15,6 @@ const config = {
           cacheDirectory: true,
           babelrc: false,
           presets: [
-            'react-hmre',
             'react',
             'stage-2'
           ],
@@ -41,5 +40,9 @@ const config = {
   ]
 }
 
+
+if (isDebug) {
+  config.module.rules[0].query.presets.unshift('react-hmre')
+}
 
 module.exports = config;
