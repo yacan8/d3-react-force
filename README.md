@@ -24,10 +24,10 @@ npm install d3-react-force
 | linkDistance   | 连线长度                                         | number或(link) => number |  0.1  |
 | collideRadius  | 节点碰撞半径                                     | number或(node) => number |  0  |
 | collideStrength| 节点碰撞强度，0~1之间                             |  number |  0.5 |
-| chargeStrength | 节点之间作用力，整数为引力，负数为斥力               |  number |  -10 |
-| staticLayout   | 是否为静态布局（需要事先使用/simulation.js计算节点位置）| boolean |  false |
-| XYCenter       | 是否添加x、y作用力，居中效果，避免不连通图游离        | boolean或Object |  {x: 0, y: 0} |
-| tick           | 动画回调，每一帧                                 | function(alpah) | noop |
+| chargeStrength | 节点之间作用力，整数为引力，负数为斥力               |  number |  -10 |
+| staticLayout   | 是否为静态布局（需要事先使用/simulation.js计算节点位置）| boolean |  false |
+| XYCenter       | 是否添加x、y作用力，居中效果，避免不连通图游离        | boolean或Object |  {x: 0, y: 0} |
+| tick           | 动画回调，每一帧                                 | function(alpah) | noop |
 | end            | tick结束回调                                    | function  | noop |
 | NodeElement    | 节点                       | React.Element或(node)=> React.Element  | circle |
 | LinkElement    | 边                         | (link, addRef) => React.Element或object  | link |
