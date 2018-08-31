@@ -1,6 +1,6 @@
 {
   "name": "d3-react-force",
-  "version": "1.0.13",
+  "version": "1.0.14-bate",
   "description": "",
   "main": "lib/index.js",
   "scripts": {

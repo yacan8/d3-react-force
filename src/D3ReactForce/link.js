@@ -3,23 +3,34 @@ import { select as d3_select, event as d3_event } from 'd3-selection';
 
 export default class Link extends React.Component {
 
-  linkDom = {};
-
   componentWillReceiveProps(nextProps) {
-    this.linkDom._link.__data__ = nextProps.link;
+    this._link.__data__ = nextProps.link;
   }
 
   componentDidMount = () => {
     let { link, parentComponent } = this.props;
-    this.linkDom._link.__data__ = link;
+    this._link.__data__ = link;
     const { linkClick, linkMouseover, linkMouseout, hasHoverLink } = parentComponent.props;
-    d3_select(hasHoverLink ? this.linkDom._hover_link : this.linkDom._link).on('click', () => {
-      linkClick(this.props.link, d3_event, this)
+    d3_select(hasHoverLink ? this._hover_link : this._link).on('click', () => {
+      linkClick.call(this, this.props.link, d3_event)
     }).on('mouseover', () => {
-      linkMouseover(this.props.link, d3_event, this)
+      linkMouseover.call(this, this.props.link, d3_event)
     }).on('mouseout', () => {
-      linkMouseout(this.props.link, d3_event, this)
+      linkMouseout.call(this, this.props.link, d3_event)
     })
+  }
+
+
+  saveRef = child => {
+    const { addRef } = this.props
+    addRef(child);
+    this._link = child;
+  }
+
+  saveHoverLinkRef = child => {
+    const { addHoverRef } = this.props;
+    this._hover_link = child;
+    addHoverRef(child)
   }
 
   getBaseProps = () => {
@@ -48,20 +59,14 @@ export default class Link extends React.Component {
     const { linkElement } = parentComponent.props;
     const baseProps = this.getBaseProps();
     const linkProps = {
-      ref: child => {
-        this.linkDom._link = child;
-        addRef(child)
-      },
+      ref: this.saveRef,
       ...baseProps
     }
     if (typeof linkElement === 'function') {
       return React.cloneElement(linkElement(link), linkProps);
     } else if (React.isValidElement(linkElement)){
       const { ref, ...nestProps } = linkProps;
-      return React.cloneElement(linkElement, {...nestProps, addRef: child => {
-        this.linkDom._link = child;
-        addRef(child);
-      }})
+      return React.cloneElement(linkElement, {...nestProps, addRef: this.saveRef})
     } else if (typeof linkElement === 'object' || !linkElement) {
       const linkAttrs = this.getObjectProps(linkElement);
       return <line
@@ -82,11 +87,7 @@ export default class Link extends React.Component {
     const { hoverLink = {} } = parentComponent.props;
     const hoverLinkAttrs = this.getObjectProps(hoverLink);
     return <line
-      ref={child => {
-        this._link = child;
-        this.linkDom._hover_link = child;
-        addHoverRef(child)
-      }}
+      ref={this.saveHoverLinkRef}
       stroke="#fff"
       strokeWidth="4"
       opacity="0"

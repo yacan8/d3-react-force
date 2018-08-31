@@ -3,16 +3,14 @@ import { select as d3_select, event as d3_event } from 'd3-selection';
 
 export default class Node extends React.Component {
 
-  nodeDom = {}
-
   componentWillReceiveProps(nextProps) {
-    this.nodeDom._node.__data__ = nextProps.node; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
+    this._node.__data__ = nextProps.node; // 解决导入操作记录时候因为图上节点已存在引用变化的问题
   }
 
   initEvent = props => {
     const { node, parentComponent } = props;
-    this.nodeDom._node.__data__ = node;
-    d3_select(this.nodeDom._node)
+    this._node.__data__ = node;
+    d3_select(this._node)
     .on('click', d => {
       const event = d3_event;
       event.stopPropagation();
@@ -20,8 +18,8 @@ export default class Node extends React.Component {
       if (d._clickid) {
         clearTimeout(d._clickid);
         d._clickid = null;
-        nodeClick(d, event);
-        nodeDbClick(d, event);
+        nodeClick.call(this, d, event);
+        nodeDbClick.call(this, d, event);
       } else {
         d._clickid = setTimeout(() => {
           nodeClick(d, event);
@@ -31,11 +29,11 @@ export default class Node extends React.Component {
     })
     .on('mouseover', node => {
       const { nodeMouseover } = parentComponent.props;
-      nodeMouseover(node, d3_event, this);
+      nodeMouseover.call(this, node, d3_event);
     })
     .on('mouseout', node => {
       const { nodeMouseout } = parentComponent.props;
-      nodeMouseout(node, d3_event, this);
+      nodeMouseout.call(this, node, d3_event);
     })
     .call(parentComponent.force.drag)
     .on('mouseover.force', null)
@@ -61,14 +59,16 @@ export default class Node extends React.Component {
     return <circle cx="0" cy="0" r="10" strokeWidth="1" stroke="#4098e2" fill="#4098e2" />
   }
 
+  saveRef = child => {
+    this._node = child;
+    this.props.addRef(child);
+  }
+
   render() {
-    const { node, addRef, parentComponent } = this.props;
+    const { node, parentComponent } = this.props;
     const { nodeIdKey, width, height, nodeProps } = parentComponent.props;
     return (
-      <g ref={child => {
-          this.nodeDom._node = child;
-          addRef(child);
-        }}
+      <g ref={this.saveRef}
         {...nodeProps}
         transform={`translate(${node.x || width / 2},${node.y || height / 2})`}
       >
