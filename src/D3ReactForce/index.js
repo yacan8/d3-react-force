@@ -177,7 +177,7 @@ class D3ReactForce extends React.Component {
       y: minY
     };
     let factor = 1, translateX = 0, translateY = 0;
-    if (offset.width > width || offset.height > height) {
+    if (offset.width > (width  - padding) || offset.height > (height - padding)) {
       if (offset.width / width > offset.height / height) {
         factor = (width - padding) / offset.width;
       } else {
